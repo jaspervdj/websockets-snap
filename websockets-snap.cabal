@@ -1,0 +1,23 @@
+Name:          websockets-snap
+Version:       0.3.1.0
+Synopsis:      Snap integration for the websockets library
+Description:   Snap integration for the websockets library
+License:       BSD3
+License-file:  LICENSE
+Author:        Jasper Van der Jeugt <m@jaspervdj.be>
+Maintainer:    Jasper Van der Jeugt <m@jaspervdj.be>
+Category:      Network
+Build-type:    Simple
+Cabal-version: >= 1.6
+
+Library
+  Hs-source-dirs: src
+
+  Exposed-modules:
+    Network.WebSockets.Snap
+
+  Build-depends:
+    base        >= 4     && < 5,
+    snap-core   >= 0.6   && < 0.7,
+    snap-server >= 0.6   && < 0.7,
+    websockets  >= 0.3.1 && < 4
