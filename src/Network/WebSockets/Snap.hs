@@ -12,13 +12,15 @@ import qualified Snap.Types.Headers as Headers
 -- continues processing the 'WS.WebSockets' action. The action to be executed
 -- takes the 'WS.Request' as a parameter, because snap has already read this
 -- from the socket.
-runWebSocketsSnap :: (WS.Request -> WS.WebSockets ())
+runWebSocketsSnap :: WS.Protocol p
+                  => (WS.Request -> WS.WebSockets p ())
                   -> Snap.Snap ()
 runWebSocketsSnap = runWebSocketsSnapWith WS.defaultWebSocketsOptions
 
 -- | Variant of 'runWebSocketsSnap' which allows custom options
-runWebSocketsSnapWith :: WS.WebSocketsOptions
-                      -> (WS.Request -> WS.WebSockets ())
+runWebSocketsSnapWith :: WS.Protocol p
+                      => WS.WebSocketsOptions
+                      -> (WS.Request -> WS.WebSockets p ())
                       -> Snap.Snap ()
 runWebSocketsSnapWith options ws = do
     rq <- Snap.getRequest
@@ -27,11 +29,11 @@ runWebSocketsSnapWith options ws = do
                 { WS.onPong = tickle 30 >> WS.onPong options
                 }
 
-        in WS.runWebSocketsWith options' (ws (fromSnapRequest rq)) writeEnd
+        in WS.runWebSocketsWith options' (fromSnapRequest rq) ws writeEnd
 
 -- | Convert a snap request to a websockets request
-fromSnapRequest :: Snap.Request -> WS.Request
-fromSnapRequest rq = WS.Request
-    { WS.requestPath    = Snap.rqURI rq
-    , WS.requestHeaders = Headers.toList (Snap.rqHeaders rq)
+fromSnapRequest :: Snap.Request -> WS.RequestHttpPart
+fromSnapRequest rq = WS.RequestHttpPart
+    { WS.requestHttpPath    = Snap.rqURI rq
+    , WS.requestHttpHeaders = Headers.toList (Snap.rqHeaders rq)
     }
