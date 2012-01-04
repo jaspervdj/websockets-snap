@@ -21,3 +21,7 @@ Library
     snap-core   >= 0.7 && < 0.8,
     snap-server >= 0.7 && < 0.8,
     websockets  >= 0.4 && < 0.6
+
+Source-repository head
+  Type:     git
+  Location: https://github.com/jaspervdj/websockets-snap
