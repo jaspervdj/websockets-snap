@@ -1,6 +1,7 @@
 -- | Snap integration for the WebSockets library
 module Network.WebSockets.Snap
     ( runWebSocketsSnap
+    , runWebSocketsSnapWith
     ) where
 
 import qualified Network.WebSockets as WS
