@@ -37,4 +37,5 @@ fromSnapRequest :: Snap.Request -> WS.RequestHttpPart
 fromSnapRequest rq = WS.RequestHttpPart
     { WS.requestHttpPath    = Snap.rqURI rq
     , WS.requestHttpHeaders = Headers.toList (Snap.rqHeaders rq)
+    , WS.requestHttpSecure = Snap.rqIsSecure rq
     }
