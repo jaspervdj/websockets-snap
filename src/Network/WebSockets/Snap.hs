@@ -27,7 +27,7 @@ runWebSocketsSnapWith options ws = do
     rq <- Snap.getRequest
     Snap.escapeHttp $ \tickle writeEnd ->
         let options' = options
-                { WS.onPong = tickle 30 >> WS.onPong options
+                { WS.onPong = tickle (+ 30) >> WS.onPong options
                 }
 
         in WS.runWebSocketsWith options' (fromSnapRequest rq) ws writeEnd
