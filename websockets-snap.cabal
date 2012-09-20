@@ -1,5 +1,5 @@
 Name:          websockets-snap
-Version:       0.6.0.2
+Version:       0.7.0.0
 Synopsis:      Snap integration for the websockets library
 Description:   Snap integration for the websockets library
 License:       BSD3
@@ -20,7 +20,7 @@ Library
     base        >= 4   && < 5,
     snap-core   >= 0.8 && < 0.10,
     snap-server >= 0.8 && < 0.10,
-    websockets  >= 0.6 && < 0.7
+    websockets  >= 0.7 && < 0.8
 
 Source-repository head
   Type:     git
