@@ -13,16 +13,16 @@ import qualified Snap.Types.Headers as Headers
 -- continues processing the 'WS.WebSockets' action. The action to be executed
 -- takes the 'WS.Request' as a parameter, because snap has already read this
 -- from the socket.
-runWebSocketsSnap :: WS.Protocol p
+runWebSocketsSnap :: (Snap.MonadSnap m, WS.Protocol p)
                   => (WS.Request -> WS.WebSockets p ())
-                  -> Snap.Snap ()
+                  -> m ()
 runWebSocketsSnap = runWebSocketsSnapWith WS.defaultWebSocketsOptions
 
 -- | Variant of 'runWebSocketsSnap' which allows custom options
-runWebSocketsSnapWith :: WS.Protocol p
+runWebSocketsSnapWith :: (Snap.MonadSnap m, WS.Protocol p)
                       => WS.WebSocketsOptions
                       -> (WS.Request -> WS.WebSockets p ())
-                      -> Snap.Snap ()
+                      -> m ()
 runWebSocketsSnapWith options ws = do
     rq <- Snap.getRequest
     Snap.escapeHttp $ \tickle writeEnd ->
