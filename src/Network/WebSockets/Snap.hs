@@ -98,7 +98,6 @@ copyOutputStreamToIteratee iteratee0 = do
             E.Error (SomeException e) -> throw e
 
 
-
 --------------------------------------------------------------------------------
 -- | The following function escapes from the current 'Snap.Snap' handler, and
 -- continues processing the 'WS.WebSockets' action. The action to be executed
@@ -138,7 +137,6 @@ runWebSocketsSnapWith options app = do
 
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
         copyIterateeToMVar mvar
-        -- in WS.runWebSocketsWith options' (fromSnapRequest rq) ws writeEnd
 
 
 --------------------------------------------------------------------------------
