@@ -20,6 +20,7 @@ import           Control.Monad.Trans           (lift)
 import           Data.ByteString               (ByteString)
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.Enumerator               as E
+import qualified Data.Enumerator.List          as EL
 import           Data.IORef                    (newIORef, readIORef, writeIORef)
 import           Data.Typeable                 (Typeable, cast)
 import qualified Network.WebSockets            as WS
@@ -55,7 +56,7 @@ copyIterateeToMVar :: MVar Chunk -> E.Iteratee ByteString IO ()
 copyIterateeToMVar mvar = E.catchError go handler
   where
     go = do
-        mbs <- E.peek
+        mbs <- EL.head
         case mbs of
             Just x  -> lift (putMVar mvar (Chunk x)) >> go
             Nothing -> lift (putMVar mvar Eof)
@@ -135,6 +136,7 @@ runWebSocketsSnapWith options app = do
                     , WS.pendingOut     = os
                     }
 
+        -- TODO: Spawn a ping thread on server accept
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
         copyIterateeToMVar mvar
 
