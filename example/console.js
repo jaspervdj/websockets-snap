@@ -1,11 +1,3 @@
-function removeTrailingNewline(str) {
-    if (str.length > 0 && str[str.length - 1] == '\n') {
-        return str; // return str.substr(0, str.length - 1);
-    } else {
-        return str;
-    }
-}
-
 function appendOutput(cls, text) {
     $('#console-output').append('<pre class="' + cls + '">' + text + '</pre>');
     $('#line').focus();
@@ -37,8 +29,7 @@ $(document).ready(function () {
         };
 
         ws.onmessage = function(event) {
-            var output = removeTrailingNewline(event.data);
-            appendOutput('stdout', output);
+            appendOutput('stdout', event.data);
         };
 
         return false;
