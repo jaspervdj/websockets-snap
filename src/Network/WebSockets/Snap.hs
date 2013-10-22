@@ -10,14 +10,16 @@ module Network.WebSockets.Snap
 --------------------------------------------------------------------------------
 import           Blaze.ByteString.Builder      (Builder)
 import qualified Blaze.ByteString.Builder      as Builder
-import           Control.Concurrent            (forkIO, myThreadId)
+import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Concurrent.MVar       (MVar, newEmptyMVar, putMVar,
                                                 takeMVar)
 import           Control.Exception             (Exception (..),
-                                                SomeException (..), throw,
-                                                throwTo)
+                                                SomeException (..), handle,
+                                                throw, throwTo)
+import           Control.Monad                 (forever)
 import           Control.Monad.Trans           (lift)
 import           Data.ByteString               (ByteString)
+import qualified Data.ByteString.Char8         as BC
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.Enumerator               as E
 import qualified Data.Enumerator.List          as EL
@@ -125,20 +127,35 @@ runWebSocketsSnapWith options app = do
 
         let options' = options
                     { WS.connectionOnPong = do
-                            tickle (max 30)
+                            tickle (max 60)
                             WS.connectionOnPong options
                     }
 
             pc = WS.PendingConnection
-                    { WS.pendingOptions = options'
-                    , WS.pendingRequest = fromSnapRequest rq
-                    , WS.pendingIn      = is
-                    , WS.pendingOut     = os
+                    { WS.pendingOptions  = options'
+                    , WS.pendingRequest  = fromSnapRequest rq
+                    , WS.pendingOnAccept = forkPingThread
+                    , WS.pendingIn       = is
+                    , WS.pendingOut      = os
                     }
 
-        -- TODO: Spawn a ping thread on server accept
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
         copyIterateeToMVar mvar
+
+
+--------------------------------------------------------------------------------
+-- | Start a ping thread in the background
+forkPingThread :: WS.Connection -> IO ()
+forkPingThread conn = do
+    _ <- forkIO pingThread
+    return ()
+  where
+    pingThread = handle ignore $ forever $ do
+        WS.sendPing conn (BC.pack "ping")
+        threadDelay $ 30 * 1000 * 1000
+
+    ignore :: SomeException -> IO ()
+    ignore _   = return ()
 
 
 --------------------------------------------------------------------------------

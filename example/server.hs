@@ -49,25 +49,28 @@ consoleApp shell pending = do
     exitCode <- Process.waitForProcess phandle
     putStrLn $ "consoleApp ended: " ++ show exitCode
 
-  where
-    copyHandleToConn :: IO.Handle -> WS.Connection -> IO ()
-    copyHandleToConn h c = do
-        bs <- B.hGetSome h 1024
-        unless (B.null bs) $ do
-            putStrLn $ "> " ++ show bs
-            WS.sendTextData c bs
-            copyHandleToConn h c
 
-    copyConnToHandle :: WS.Connection -> IO.Handle -> IO ()
-    copyConnToHandle c h = handle close $ forever $ do
-        bs <- WS.receiveData c
-        putStrLn $ "< " ++ show bs
-        B.hPutStr h bs
-        IO.hFlush h
-      where
-        close e = case fromException e of
-            Just WS.ConnectionClosed -> IO.hClose h
-            Nothing                  -> throw e
+--------------------------------------------------------------------------------
+copyHandleToConn :: IO.Handle -> WS.Connection -> IO ()
+copyHandleToConn h c = do
+    bs <- B.hGetSome h 1024
+    unless (B.null bs) $ do
+        putStrLn $ "> " ++ show bs
+        WS.sendTextData c bs
+        copyHandleToConn h c
+
+
+--------------------------------------------------------------------------------
+copyConnToHandle :: WS.Connection -> IO.Handle -> IO ()
+copyConnToHandle c h = handle close $ forever $ do
+    bs <- WS.receiveData c
+    putStrLn $ "< " ++ show bs
+    B.hPutStr h bs
+    IO.hFlush h
+  where
+    close e = case fromException e of
+        Just WS.ConnectionClosed -> IO.hClose h
+        Nothing                  -> throw e
 
 
 --------------------------------------------------------------------------------
