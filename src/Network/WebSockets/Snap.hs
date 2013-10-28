@@ -106,16 +106,18 @@ copyOutputStreamToIteratee iteratee0 = do
 -- continues processing the 'WS.WebSockets' action. The action to be executed
 -- takes the 'WS.Request' as a parameter, because snap has already read this
 -- from the socket.
-runWebSocketsSnap :: WS.ServerApp
-                  -> Snap.Snap ()
+runWebSocketsSnap :: Snap.MonadSnap m
+                  => WS.ServerApp
+                  -> m ()
 runWebSocketsSnap = runWebSocketsSnapWith WS.defaultConnectionOptions
 
 
 --------------------------------------------------------------------------------
 -- | Variant of 'runWebSocketsSnap' which allows custom options
-runWebSocketsSnapWith :: WS.ConnectionOptions
+runWebSocketsSnapWith :: Snap.MonadSnap m
+                      => WS.ConnectionOptions
                       -> WS.ServerApp
-                      -> Snap.Snap ()
+                      -> m ()
 runWebSocketsSnapWith options app = do
     rq <- Snap.getRequest
     Snap.escapeHttp $ \tickle writeEnd -> do
