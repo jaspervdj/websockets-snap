@@ -136,7 +136,7 @@ runWebSocketsSnapWith options app = do
             pc = WS.PendingConnection
                     { WS.pendingOptions  = options'
                     , WS.pendingRequest  = fromSnapRequest rq
-                    , WS.pendingOnAccept = forkPingThread
+                    , WS.pendingOnAccept = forkPingThread tickle
                     , WS.pendingIn       = is
                     , WS.pendingOut      = os
                     }
@@ -147,13 +147,14 @@ runWebSocketsSnapWith options app = do
 
 --------------------------------------------------------------------------------
 -- | Start a ping thread in the background
-forkPingThread :: WS.Connection -> IO ()
-forkPingThread conn = do
+forkPingThread :: ((Int -> Int) -> IO ()) -> WS.Connection -> IO ()
+forkPingThread tickle conn = do
     _ <- forkIO pingThread
     return ()
   where
     pingThread = handle ignore $ forever $ do
         WS.sendPing conn (BC.pack "ping")
+        tickle (min 15)
         threadDelay $ 30 * 1000 * 1000
 
     ignore :: SomeException -> IO ()
