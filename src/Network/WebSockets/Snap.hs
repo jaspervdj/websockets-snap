@@ -54,13 +54,18 @@ instance Exception ServerAppDone where
 
 
 --------------------------------------------------------------------------------
-copyIterateeToMVar :: MVar Chunk -> E.Iteratee ByteString IO ()
-copyIterateeToMVar mvar = E.catchError go handler
+copyIterateeToMVar :: ((Int -> Int) -> IO ())
+                   -> MVar Chunk
+                   -> E.Iteratee ByteString IO ()
+copyIterateeToMVar tickle mvar = E.catchError go handler
   where
     go = do
         mbs <- EL.head
         case mbs of
-            Just x  -> lift (putMVar mvar (Chunk x)) >> go
+            Just x  -> do
+                lift (tickle (max 60))
+                lift (putMVar mvar (Chunk x))
+                go
             Nothing -> lift (putMVar mvar Eof)
 
     handler se@(SomeException e) = case cast e of
@@ -136,24 +141,25 @@ runWebSocketsSnapWith options app = do
             pc = WS.PendingConnection
                     { WS.pendingOptions  = options'
                     , WS.pendingRequest  = fromSnapRequest rq
-                    , WS.pendingOnAccept = forkPingThread
+                    , WS.pendingOnAccept = forkPingThread tickle
                     , WS.pendingIn       = is
                     , WS.pendingOut      = os
                     }
 
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
-        copyIterateeToMVar mvar
+        copyIterateeToMVar tickle mvar
 
 
 --------------------------------------------------------------------------------
 -- | Start a ping thread in the background
-forkPingThread :: WS.Connection -> IO ()
-forkPingThread conn = do
+forkPingThread :: ((Int -> Int) -> IO ()) -> WS.Connection -> IO ()
+forkPingThread tickle conn = do
     _ <- forkIO pingThread
     return ()
   where
     pingThread = handle ignore $ forever $ do
         WS.sendPing conn (BC.pack "ping")
+        tickle (min 15)
         threadDelay $ 30 * 1000 * 1000
 
     ignore :: SomeException -> IO ()
