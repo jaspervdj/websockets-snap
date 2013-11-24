@@ -54,13 +54,18 @@ instance Exception ServerAppDone where
 
 
 --------------------------------------------------------------------------------
-copyIterateeToMVar :: MVar Chunk -> E.Iteratee ByteString IO ()
-copyIterateeToMVar mvar = E.catchError go handler
+copyIterateeToMVar :: ((Int -> Int) -> IO ())
+                   -> MVar Chunk
+                   -> E.Iteratee ByteString IO ()
+copyIterateeToMVar tickle mvar = E.catchError go handler
   where
     go = do
         mbs <- EL.head
         case mbs of
-            Just x  -> lift (putMVar mvar (Chunk x)) >> go
+            Just x  -> do
+                lift (tickle (max 60))
+                lift (putMVar mvar (Chunk x))
+                go
             Nothing -> lift (putMVar mvar Eof)
 
     handler se@(SomeException e) = case cast e of
@@ -142,7 +147,7 @@ runWebSocketsSnapWith options app = do
                     }
 
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
-        copyIterateeToMVar mvar
+        copyIterateeToMVar tickle mvar
 
 
 --------------------------------------------------------------------------------
