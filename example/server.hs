@@ -5,7 +5,7 @@ module Main where
 
 --------------------------------------------------------------------------------
 import           Control.Concurrent      (forkIO)
-import           Control.Exception       (fromException, handle, throw)
+import           Control.Exception       (finally)
 import           Control.Monad           (forever, unless)
 import qualified Data.ByteString         as B
 import qualified Data.ByteString.Char8   as BC
@@ -62,15 +62,11 @@ copyHandleToConn h c = do
 
 --------------------------------------------------------------------------------
 copyConnToHandle :: WS.Connection -> IO.Handle -> IO ()
-copyConnToHandle c h = handle close $ forever $ do
+copyConnToHandle c h = flip finally (IO.hClose h) $ forever $ do
     bs <- WS.receiveData c
     putStrLn $ "< " ++ show bs
     B.hPutStr h bs
     IO.hFlush h
-  where
-    close e = case fromException e of
-        Just WS.ConnectionClosed -> IO.hClose h
-        Nothing                  -> throw e
 
 
 --------------------------------------------------------------------------------
