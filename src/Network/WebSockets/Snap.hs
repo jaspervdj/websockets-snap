@@ -8,8 +8,6 @@ module Network.WebSockets.Snap
 
 
 --------------------------------------------------------------------------------
-import           Blaze.ByteString.Builder      (Builder)
-import qualified Blaze.ByteString.Builder      as Builder
 import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Concurrent.MVar       (MVar, newEmptyMVar, putMVar,
                                                 takeMVar)
@@ -27,11 +25,10 @@ import           Data.IORef                    (newIORef, readIORef, writeIORef)
 import           Data.Typeable                 (Typeable, cast)
 import qualified Network.WebSockets            as WS
 import qualified Network.WebSockets.Connection as WS
+import qualified Network.WebSockets.Stream     as WS
 import qualified Snap.Core                     as Snap
 import qualified Snap.Internal.Http.Types      as Snap
 import qualified Snap.Types.Headers            as Headers
-import           System.IO.Streams             (InputStream, OutputStream)
-import qualified System.IO.Streams             as Streams
 
 
 --------------------------------------------------------------------------------
@@ -54,9 +51,10 @@ instance Exception ServerAppDone where
 
 
 --------------------------------------------------------------------------------
-copyIterateeToMVar :: ((Int -> Int) -> IO ())
-                   -> MVar Chunk
-                   -> E.Iteratee ByteString IO ()
+copyIterateeToMVar
+    :: ((Int -> Int) -> IO ())
+    -> MVar Chunk
+    -> E.Iteratee ByteString IO ()
 copyIterateeToMVar tickle mvar = E.catchError go handler
   where
     go = do
@@ -76,8 +74,8 @@ copyIterateeToMVar tickle mvar = E.catchError go handler
 
 
 --------------------------------------------------------------------------------
-copyMVarToInputStream :: MVar Chunk -> IO (InputStream ByteString)
-copyMVarToInputStream mvar = Streams.makeInputStream go
+copyMVarToStream :: MVar Chunk -> IO (IO (Maybe ByteString))
+copyMVarToStream mvar = return go
   where
     go = do
         chunk <- takeMVar mvar
@@ -88,18 +86,19 @@ copyMVarToInputStream mvar = Streams.makeInputStream go
 
 
 --------------------------------------------------------------------------------
-copyOutputStreamToIteratee :: E.Iteratee ByteString IO ()
-                           -> IO (OutputStream Builder)
-copyOutputStreamToIteratee iteratee0 = do
+copyStreamToIteratee
+    :: E.Iteratee ByteString IO ()
+    -> IO (Maybe BL.ByteString -> IO ())
+copyStreamToIteratee iteratee0 = do
     ref <- newIORef =<< E.runIteratee iteratee0
-    Streams.makeOutputStream (go ref)
+    return (go ref)
   where
-    go _   Nothing    = return ()
-    go ref (Just bld) = do
+    go _   Nothing   = return ()
+    go ref (Just bl) = do
         step <- readIORef ref
         case step of
             E.Continue f              -> do
-                let chunks = BL.toChunks $ Builder.toLazyByteString bld
+                let chunks = BL.toChunks bl
                 step' <- E.runIteratee $ f $ E.Chunks chunks
                 writeIORef ref step'
             E.Yield () _              -> throw WS.ConnectionClosed
@@ -111,26 +110,29 @@ copyOutputStreamToIteratee iteratee0 = do
 -- continues processing the 'WS.WebSockets' action. The action to be executed
 -- takes the 'WS.Request' as a parameter, because snap has already read this
 -- from the socket.
-runWebSocketsSnap :: Snap.MonadSnap m
-                  => WS.ServerApp
-                  -> m ()
+runWebSocketsSnap
+    :: Snap.MonadSnap m
+    => WS.ServerApp
+    -> m ()
 runWebSocketsSnap = runWebSocketsSnapWith WS.defaultConnectionOptions
 
 
 --------------------------------------------------------------------------------
 -- | Variant of 'runWebSocketsSnap' which allows custom options
-runWebSocketsSnapWith :: Snap.MonadSnap m
-                      => WS.ConnectionOptions
-                      -> WS.ServerApp
-                      -> m ()
+runWebSocketsSnapWith
+    :: Snap.MonadSnap m
+    => WS.ConnectionOptions
+    -> WS.ServerApp
+    -> m ()
 runWebSocketsSnapWith options app = do
     rq <- Snap.getRequest
     Snap.escapeHttp $ \tickle writeEnd -> do
 
         thisThread <- lift myThreadId
         mvar       <- lift newEmptyMVar
-        is         <- lift $ copyMVarToInputStream mvar
-        os         <- lift $ copyOutputStreamToIteratee writeEnd
+        parse      <- lift $ copyMVarToStream mvar
+        write      <- lift $ copyStreamToIteratee writeEnd
+        stream     <- lift $ WS.makeStream parse write
 
         let options' = options
                     { WS.connectionOnPong = do
@@ -142,8 +144,7 @@ runWebSocketsSnapWith options app = do
                     { WS.pendingOptions  = options'
                     , WS.pendingRequest  = fromSnapRequest rq
                     , WS.pendingOnAccept = forkPingThread tickle
-                    , WS.pendingIn       = is
-                    , WS.pendingOut      = os
+                    , WS.pendingStream   = stream
                     }
 
         _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone

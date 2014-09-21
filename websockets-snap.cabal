@@ -1,5 +1,5 @@
 Name:          websockets-snap
-Version:       0.8.2.2
+Version:       0.9.0.0
 Synopsis:      Snap integration for the websockets library
 Description:   Snap integration for the websockets library
 License:       BSD3
@@ -15,20 +15,19 @@ Extra-source-files:
 
 Library
   Hs-source-dirs: src
+  Ghc-options:    -Wall
 
   Exposed-modules:
     Network.WebSockets.Snap
 
   Build-depends:
     base          >= 4   && < 5,
-    blaze-builder >= 0.3 && < 0.4,
     bytestring    >= 0.9 && < 0.11,
     enumerator    >= 0.4 && < 0.5,
-    io-streams    >= 1.1 && < 1.2,
     mtl           >= 2.1 && < 2.3,
     snap-core     >= 0.8 && < 0.10,
     snap-server   >= 0.8 && < 0.10,
-    websockets    >= 0.8 && < 0.9
+    websockets    >= 0.9 && < 0.10
 
 Source-repository head
   Type:     git
