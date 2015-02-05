@@ -10,7 +10,7 @@ module Network.WebSockets.Snap
 --------------------------------------------------------------------------------
 import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Concurrent.MVar       (MVar, newEmptyMVar, putMVar,
-                                                takeMVar)
+                                                takeMVar, newMVar)
 import           Control.Exception             (Exception (..),
                                                 SomeException (..), handle,
                                                 throw, throwTo)
@@ -90,19 +90,19 @@ copyStreamToIteratee
     :: E.Iteratee ByteString IO ()
     -> IO (Maybe BL.ByteString -> IO ())
 copyStreamToIteratee iteratee0 = do
-    ref <- newIORef =<< E.runIteratee iteratee0
+    ref <- newMVar =<< E.runIteratee iteratee0
     return (go ref)
   where
     go _   Nothing   = return ()
     go ref (Just bl) = do
-        step <- readIORef ref
+        step <- takeMVar ref
         case step of
             E.Continue f              -> do
                 let chunks = BL.toChunks bl
                 step' <- E.runIteratee $ f $ E.Chunks chunks
-                writeIORef ref step'
-            E.Yield () _              -> throw WS.ConnectionClosed
-            E.Error (SomeException e) -> throw e
+                putMVar ref step'
+            E.Yield () _              -> putMVar ref step >> throw WS.ConnectionClosed
+            E.Error (SomeException e) -> putMVar ref step >> throw e
 
 
 --------------------------------------------------------------------------------
