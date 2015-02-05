@@ -1,2 +1,8 @@
+- 0.9.1.0
+    * Fixed interleaved messages issue
+
+- 0.9.0.0
+    * Bump websockets dependency
+
 - 0.8.2.2
     * Bump mtl dependency
