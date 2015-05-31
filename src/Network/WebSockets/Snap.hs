@@ -10,10 +10,10 @@ module Network.WebSockets.Snap
 --------------------------------------------------------------------------------
 import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Concurrent.MVar       (MVar, newEmptyMVar, putMVar,
-                                                takeMVar, newMVar)
+                                                takeMVar)
 import           Control.Exception             (Exception (..),
-                                                SomeException (..), handle,
-                                                throw, throwTo)
+                                                SomeException (..), finally,
+                                                handle, throwIO, throwTo)
 import           Control.Monad                 (forever)
 import           Control.Monad.Trans           (lift)
 import           Data.ByteString               (ByteString)
@@ -82,7 +82,7 @@ copyMVarToStream mvar = return go
         case chunk of
             Chunk x                 -> return (Just x)
             Eof                     -> return Nothing
-            Error (SomeException e) -> throw e
+            Error (SomeException e) -> throwIO e
 
 
 --------------------------------------------------------------------------------
@@ -90,19 +90,19 @@ copyStreamToIteratee
     :: E.Iteratee ByteString IO ()
     -> IO (Maybe BL.ByteString -> IO ())
 copyStreamToIteratee iteratee0 = do
-    ref <- newMVar =<< E.runIteratee iteratee0
+    ref <- newIORef =<< E.runIteratee iteratee0
     return (go ref)
   where
     go _   Nothing   = return ()
     go ref (Just bl) = do
-        step <- takeMVar ref
+        step <- readIORef ref
         case step of
             E.Continue f              -> do
                 let chunks = BL.toChunks bl
                 step' <- E.runIteratee $ f $ E.Chunks chunks
-                putMVar ref step'
-            E.Yield () _              -> putMVar ref step >> throw WS.ConnectionClosed
-            E.Error (SomeException e) -> putMVar ref step >> throw e
+                writeIORef ref step'
+            E.Yield () _              -> throwIO WS.ConnectionClosed
+            E.Error (SomeException e) -> throwIO e
 
 
 --------------------------------------------------------------------------------
@@ -147,7 +147,9 @@ runWebSocketsSnapWith options app = do
                     , WS.pendingStream   = stream
                     }
 
-        _ <- lift $ forkIO $ app pc >> throwTo thisThread ServerAppDone
+        _ <- lift $ forkIO $ finally (app pc) $ do
+            WS.close stream
+            throwTo thisThread ServerAppDone
         copyIterateeToMVar tickle mvar
 
 

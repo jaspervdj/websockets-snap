@@ -1,3 +1,6 @@
+- 0.9.2.0
+    * Bump websockets to 0.9.5.0 to fix socket closing issues
+
 - 0.9.1.0
     * Fixed interleaved messages issue
 
