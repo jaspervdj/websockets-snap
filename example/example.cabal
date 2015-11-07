@@ -1,0 +1,49 @@
+Name:          example
+Version:       1.0.0.0
+Synopsis:      Snap integration for the websockets library
+Description:   Snap integration for the websockets library
+License:       BSD3
+License-file:  LICENSE
+Author:        Jasper Van der Jeugt <m@jaspervdj.be>
+Maintainer:    Jasper Van der Jeugt <m@jaspervdj.be>
+Category:      Network
+Build-type:    Simple
+Cabal-version: >= 1.6
+
+Executable example
+  Main-is: server.hs
+ 
+ Build-depends:
+    base        >= 4   && < 5,
+    blaze-builder,
+    bytestring,
+    io-streams,
+    mtl,
+    process,
+    snap-core       >= 1.0 && < 1.1,
+    snap-server     >= 1.0 && < 1.1,
+    text,
+    transformers,
+    websockets      >= 0.9.5 && < 0.10,
+    websockets-snap >= 1.0.0.0 && < 1.1
+
+Executable meow
+  Main-is: meow.hs
+
+  Build-depends:
+    base        >= 4   && < 5,
+    blaze-builder,
+    bytestring,
+    io-streams,
+    mtl,
+    process,
+    snap-core       >= 1.0 && < 1.1,
+    snap-server     >= 1.0 && < 1.1,
+    text,
+    transformers,
+    websockets      >= 0.9.5 && < 0.10,
+    websockets-snap >= 1.0.0.0 && < 1.1
+
+Source-repository head
+  Type:     git
+  Location: https://github.com/jaspervdj/websockets-snap
