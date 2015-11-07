@@ -21,9 +21,11 @@ import           Control.Exception             (Exception (..),
 import           Control.Monad.Trans           (lift)
 import           Data.ByteString               (ByteString)
 import qualified Data.ByteString.Builder       as BSBuilder
+import qualified Data.ByteString.Builder.Extra as BSBuilder
 import qualified Data.ByteString.Lazy          as BL
 --import qualified Data.Enumerator               as E
 import           Data.IORef                    (newIORef, readIORef, writeIORef)
+import           Data.Monoid                   ((<>))
 import           Data.Typeable                 (Typeable, cast)
 import qualified Network.WebSockets            as WS
 import qualified Network.WebSockets.Connection as WS
@@ -85,10 +87,12 @@ runWebSocketsSnapWith options app = do
           r <- Streams.write v s
           putStrLn $ "Wrote"
 
-    -- thisThread <- myThreadId
+    thisThread <- myThreadId
     stream <- WS.makeStream
-              (debugRead readEnd)
-              (flip debugWrite writeEnd . fmap BSBuilder.lazyByteString)
+              (Streams.read readEnd)
+              (\v ->
+                 Streams.write (((<> BSBuilder.flush) . BSBuilder.lazyByteString) <$> v) writeEnd
+              )
 
     let options' = options
                    { WS.connectionOnPong = do
@@ -102,7 +106,7 @@ runWebSocketsSnapWith options app = do
                , WS.pendingOnAccept = \_ -> return ()
                , WS.pendingStream   = stream
                }
-    app pc -- >> throwTo thisThread ServerAppDone
+    app pc >> throwTo thisThread ServerAppDone
 
 
 --------------------------------------------------------------------------------
@@ -113,3 +117,5 @@ fromSnapRequest rq = WS.RequestHead
     , WS.requestHeaders = Headers.toList (Snap.rqHeaders rq)
     , WS.requestSecure  = Snap.rqIsSecure rq
     }
+
+    
