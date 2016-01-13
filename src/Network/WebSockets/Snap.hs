@@ -94,7 +94,7 @@ runWebSocketsSnapWith options app = do
     writeEnd'' <- Streams.debugOutput (BL.toStrict . BSBuilder.toLazyByteString) "OutputStream: " Streams.stdout writeEnd'
 
     thisThread <- myThreadId
-    stream <- WS.makeStream (Streams.read readEnd'')
+    stream <- WS.makeStream (tickle (max 20) >> Streams.read readEnd'')
               (\v -> Streams.write (fmap BSBuilder.lazyByteString v) writeEnd'' >>
                      Streams.write (Just flush) writeEnd'')
     liftIO $ print "Done making stream"
