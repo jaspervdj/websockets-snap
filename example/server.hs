@@ -75,8 +75,7 @@ main :: IO ()
 main = Snap.httpServe config app
   where
     config =
-      -- Snap.defaultConfig $
-          Snap.setErrorLog  Snap.ConfigNoLog $
-          Snap.setAccessLog Snap.ConfigNoLog $
-          Snap.defaultConfig
+        Snap.setErrorLog  Snap.ConfigNoLog $
+        Snap.setAccessLog Snap.ConfigNoLog $
+        Snap.defaultConfig
 
