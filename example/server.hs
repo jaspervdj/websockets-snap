@@ -14,6 +14,7 @@ import qualified Network.WebSockets.Snap as WS
 import           Snap.Core               (Snap)
 import qualified Snap.Core               as Snap
 import qualified Snap.Http.Server        as Snap
+import qualified Snap.Http.Server.Config as Snap
 import qualified Snap.Util.FileServe     as Snap
 import qualified System.IO               as IO
 import qualified System.Process          as Process
@@ -74,6 +75,8 @@ main :: IO ()
 main = Snap.httpServe config app
   where
     config =
-        Snap.setErrorLog  Snap.ConfigNoLog $
-        Snap.setAccessLog Snap.ConfigNoLog $
-        Snap.defaultConfig
+      -- Snap.defaultConfig $
+          Snap.setErrorLog  Snap.ConfigNoLog $
+          Snap.setAccessLog Snap.ConfigNoLog $
+          Snap.defaultConfig
+
