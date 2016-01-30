@@ -1,0 +1,23 @@
+name:                websockets-snap-example
+version:             0.1.0.0
+license:             BSD3
+license-file:        LICENSE
+author:              Jasper Van der Jeugt <m@jaspervdj.be>
+maintainer:          Jasper Van der Jeugt <m@jaspervdj.be>
+category:            Network
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable websockets-snap-example
+  main-is:             server.hs
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts=-N"
+
+  build-depends:
+    base             >= 4     && < 5,
+    bytestring       >= 0.10  && < 0.11,
+    process          >= 1.2   && < 1.3,
+    snap-core        >= 0.8   && < 0.10,
+    snap-server      >= 0.8   && < 0.10,
+    websockets       >= 0.9.5 && < 0.10,
+    websockets-snap  >= 0.9.2 && < 0.10
