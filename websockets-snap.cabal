@@ -28,7 +28,7 @@ Library
     snap-core     >= 1.0   && < 1.1,
     snap-server   >= 1.0   && < 1.1,
     websockets    >= 0.9.5 && < 0.10,
-    clock         >= 0.5   && < 0.5.2
+    clock         >= 0.7.1 && < 0.8
 
 Source-repository head
   Type:     git
