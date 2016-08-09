@@ -1,4 +1,4 @@
-- 1.0.0.0
+- 0.10.0.0
     * Bump snap-core and snap-server to 1.0.0.0
     * Remove git submodules; use hackage for all dependencies
     * Use cabal.project file to build example server

@@ -14,7 +14,6 @@ import qualified Network.WebSockets.Snap as WS
 import           Snap.Core               (Snap)
 import qualified Snap.Core               as Snap
 import qualified Snap.Http.Server        as Snap
-import qualified Snap.Http.Server.Config as Snap
 import qualified Snap.Util.FileServe     as Snap
 import qualified System.IO               as IO
 import qualified System.Process          as Process

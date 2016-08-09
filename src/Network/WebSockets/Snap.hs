@@ -69,14 +69,12 @@ runWebSocketsSnapWith
 runWebSocketsSnapWith options app = do
   rq <- Snap.getRequest
   Snap.escapeHttp $ \tickle readEnd writeEnd -> do
-    readEnd'  <- Streams.lockingInputStream  readEnd
-    writeEnd' <- Streams.lockingOutputStream writeEnd
 
     thisThread <- myThreadId
-    stream <- WS.makeStream (tickle (max 20) >> Streams.read readEnd')
+    stream <- WS.makeStream (tickle (max 20) >> Streams.read readEnd)
               (\v -> do
-                  Streams.write (fmap BSBuilder.lazyByteString v) writeEnd'
-                  Streams.write (Just BSBuilder.flush) writeEnd'
+                  Streams.write (fmap BSBuilder.lazyByteString v) writeEnd
+                  Streams.write (Just BSBuilder.flush) writeEnd
               )
 
     let options' = options
