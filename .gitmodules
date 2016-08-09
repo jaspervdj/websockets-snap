@@ -1,3 +1,0 @@
-[submodule "deps/snap"]
-	path = deps/snap
-	url = https://github.com/snapframework/snap
