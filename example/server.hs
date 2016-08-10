@@ -77,3 +77,4 @@ main = Snap.httpServe config app
         Snap.setErrorLog  Snap.ConfigNoLog $
         Snap.setAccessLog Snap.ConfigNoLog $
         Snap.defaultConfig
+
