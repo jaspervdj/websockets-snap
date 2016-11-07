@@ -101,7 +101,7 @@ forkPingThread tickle conn = do
   where
     pingThread = handle ignore $ forever $ do
         WS.sendPing conn (BC.pack "ping")
-        tickle (min 15)
+        tickle (max 15)
         threadDelay $ 30 * 1000 * 1000
 
     ignore :: SomeException -> IO ()
