@@ -71,7 +71,7 @@ runWebSocketsSnapWith options app = do
   Snap.escapeHttp $ \tickle readEnd writeEnd -> do
 
     thisThread <- myThreadId
-    stream <- WS.makeStream (tickle (max 20) >> Streams.read readEnd)
+    stream <- WS.makeStream (Streams.read readEnd)
               (\v -> do
                   Streams.write (fmap BSBuilder.lazyByteString v) writeEnd
                   Streams.write (Just BSBuilder.flush) writeEnd
@@ -79,7 +79,7 @@ runWebSocketsSnapWith options app = do
 
     let options' = options
                    { WS.connectionOnPong = do
-                        tickle (max 30)
+                        tickle (max 45)
                         WS.connectionOnPong options
                    }
 
