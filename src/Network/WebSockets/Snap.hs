@@ -1,8 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 --------------------------------------------------------------------------------
 -- | Snap integration for the WebSockets library
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings  #-}
 module Network.WebSockets.Snap
     ( runWebSocketsSnap
     , runWebSocketsSnapWith
@@ -12,8 +11,8 @@ module Network.WebSockets.Snap
 --------------------------------------------------------------------------------
 import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Exception             (Exception (..),
-                                                SomeException (..),
-                                                handle, throwTo)
+                                                SomeException (..), handle,
+                                                throwTo)
 import           Control.Monad                 (forever)
 import           Data.ByteString               (ByteString)
 import qualified Data.ByteString.Builder       as BSBuilder

@@ -19,5 +19,5 @@ executable websockets-snap-example
     process          >= 1.2      && < 1.5,
     snap-core        >= 1.0      && < 1.1,
     snap-server      >= 1.0      && < 1.1,
-    websockets       >= 0.9.5    && < 0.10,
+    websockets       >= 0.9.5    && < 0.11,
     websockets-snap  >= 0.10.0.0 && < 0.11

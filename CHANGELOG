@@ -1,3 +1,6 @@
+- 0.10.2.0
+    * Bump websockets to 0.10.0.0
+
 - 0.10.1.1
     * Add `bytestring-builder` as dependency to fix GHC 7.6 compatibility
 
