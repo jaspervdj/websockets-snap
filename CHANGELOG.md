@@ -1,3 +1,6 @@
+- 0.10.2.2
+    * Bump io-streams to 1.4.0.0
+
 - 0.10.2.1
     * Bump websockets to 0.11.0.0
 
