@@ -1,3 +1,6 @@
+- 0.10.2.4 (2017-11-26)
+    * Bump io-streams to 1.5
+
 - 0.10.2.3 (2017-07-21)
     * Bump websockets to 0.12.0.0
 
