@@ -1,3 +1,6 @@
+- 0.10.2.5
+    * Bump snap-server to 1.1
+
 - 0.10.2.4 (2017-11-26)
     * Bump io-streams to 1.5
 
