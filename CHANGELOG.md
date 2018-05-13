@@ -1,3 +1,9 @@
+# CHANGELOG
+
+- 0.10.3.0 (2018-05-13)
+    * Increase ping thread frequency to every 10s, extend Snap timeout by at
+      least 60s (by Dmitry Dzhus)
+
 - 0.10.2.5
     * Bump snap-server to 1.1
 
