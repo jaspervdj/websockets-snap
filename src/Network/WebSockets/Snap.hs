@@ -12,8 +12,10 @@ module Network.WebSockets.Snap
 import           Control.Concurrent            (forkIO, myThreadId, threadDelay)
 import           Control.Exception             (Exception (..),
                                                 SomeException (..), handle,
-                                                throwTo)
-import           Control.Monad                 (forever)
+                                                throwTo, finally)
+import           Data.IORef                    (IORef, newIORef, readIORef,
+                                                writeIORef)
+import           Control.Monad                 (unless)
 import           Data.ByteString               (ByteString)
 import qualified Data.ByteString.Builder       as BSBuilder
 import qualified Data.ByteString.Builder.Extra as BSBuilder
@@ -25,7 +27,6 @@ import qualified Network.WebSockets.Stream     as WS
 import qualified Snap.Core                     as Snap
 import qualified Snap.Types.Headers            as Headers
 import qualified System.IO.Streams             as Streams
-
 
 --------------------------------------------------------------------------------
 data Chunk
@@ -76,6 +77,8 @@ runWebSocketsSnapWith options app = do
                   Streams.write (Just BSBuilder.flush) writeEnd
               )
 
+    done <- newIORef False
+
     let options' = options
                    { WS.connectionOnPong = do
                         tickle (max 45)
@@ -85,23 +88,26 @@ runWebSocketsSnapWith options app = do
         pc = WS.PendingConnection
                { WS.pendingOptions  = options'
                , WS.pendingRequest  = fromSnapRequest rq
-               , WS.pendingOnAccept = forkPingThread tickle
+               , WS.pendingOnAccept = forkPingThread tickle done
                , WS.pendingStream   = stream
                }
-    app pc >> throwTo thisThread ServerAppDone
+    (app pc >> throwTo thisThread ServerAppDone) `finally` writeIORef done True
 
 
 --------------------------------------------------------------------------------
 -- | Start a ping thread in the background
-forkPingThread :: ((Int -> Int) -> IO ()) -> WS.Connection -> IO ()
-forkPingThread tickle conn = do
+forkPingThread :: ((Int -> Int) -> IO ()) -> IORef Bool -> WS.Connection -> IO ()
+forkPingThread tickle done conn = do
     _ <- forkIO pingThread
     return ()
   where
-    pingThread = handle ignore $ forever $ do
-        WS.sendPing conn (BC.pack "ping")
-        tickle (max 60)
-        threadDelay $ 10 * 1000 * 1000
+    pingThread = handle ignore $ do
+        d <- readIORef done
+        unless d $ do
+            WS.sendPing conn (BC.pack "ping")
+            tickle (max 60)
+            threadDelay $ 10 * 1000 * 1000
+            pingThread
 
     ignore :: SomeException -> IO ()
     ignore _   = return ()
