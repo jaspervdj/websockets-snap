@@ -1,4 +1,5 @@
-resolver: 'lts-11.7'
+resolver: 'lts-13.0'
 packages:
   - '.'
   - 'example/'
+save-hackage-creds: false

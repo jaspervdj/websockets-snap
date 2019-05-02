@@ -101,13 +101,15 @@ forkPingThread tickle done conn = do
     _ <- forkIO pingThread
     return ()
   where
-    pingThread = handle ignore $ do
-        d <- readIORef done
-        unless d $ do
-            WS.sendPing conn (BC.pack "ping")
-            tickle (max 60)
-            threadDelay $ 10 * 1000 * 1000
-            pingThread
+    pingThread = handle ignore $
+        let loop = do
+                d <- readIORef done
+                unless d $ do
+                    WS.sendPing conn (BC.pack "ping")
+                    tickle (max 60)
+                    threadDelay $ 10 * 1000 * 1000
+                    loop in
+        loop
 
     ignore :: SomeException -> IO ()
     ignore _   = return ()
