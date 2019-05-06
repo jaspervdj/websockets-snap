@@ -1,5 +1,9 @@
 # CHANGELOG
 
+- 0.10.3.1 (2019-05-06)
+    * Gracefully close ping threads when ServerApp finishes (by Lorenz
+      Mösenlechner)
+
 - 0.10.3.0 (2018-05-13)
     * Increase ping thread frequency to every 10s, extend Snap timeout by at
       least 60s (by Dmitry Dzhus)
