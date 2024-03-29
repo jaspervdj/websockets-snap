@@ -28,13 +28,6 @@ import qualified Snap.Core                     as Snap
 import qualified Snap.Types.Headers            as Headers
 import qualified System.IO.Streams             as Streams
 
---------------------------------------------------------------------------------
-data Chunk
-    = Chunk ByteString
-    | Eof
-    | Error SomeException
-    deriving (Show)
-
 
 --------------------------------------------------------------------------------
 data ServerAppDone = ServerAppDone
